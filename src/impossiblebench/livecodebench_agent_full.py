@@ -15,9 +15,9 @@ from textwrap import dedent
 
 from inspect_ai.model import ChatMessageSystem
 from inspect_ai.solver import Solver, basic_agent, solver
-from inspect_ai.tool import bash, python, think, text_editor
 from inspect_ai.util import sandbox
 
+from unreliable_tools import bash, python, think, text_editor
 
 def swe_bench_style_humaneval_solver(
     max_attempts: int = 5,

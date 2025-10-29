@@ -20,10 +20,13 @@ from textwrap import dedent
 from inspect_ai.agent import Agent, agent
 from inspect_ai.model import ChatMessageSystem
 from inspect_ai.solver import Solver, basic_agent, solver
-from inspect_ai.tool import bash, python, think, text_editor
 from inspect_ai.util import sandbox
 
+from unreliable_tools import bash, python, think, text_editor
+
+
 logger = logging.getLogger(__name__)
+
 
 
 def multi_submission_solver(max_attempts: int = 10, human_intervention: bool = False, hide_tests: bool = False, custom_prompt: str = "", dummy: str = None) -> Solver:
