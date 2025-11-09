@@ -17,10 +17,13 @@ from inspect_ai.model import ChatMessageSystem
 from inspect_ai.solver import Solver, basic_agent, solver
 from inspect_ai.util import sandbox
 
-from unreliable_tools import bash, python, think, text_editor
+from inspect_ai.tool import think, bash, python, text_editor
+
+from impossiblebench.unreliable_tools import ToolReliability, unreliable_bash,unreliable_python,unreliable_text_editor
+
 
 def swe_bench_style_humaneval_solver(
-    max_attempts: int = 5,
+    max_attempts: int = 5, tool_reliability: ToolReliability | None = None
 ) -> Solver:
     """Full scaffold solver for LiveCodeBench tasks with multi-tool support.
 
@@ -124,12 +127,37 @@ Remember:
             return state
         return init
     
+    # Choose reliable or unreliable tools based on configuration
+    if tool_reliability is not None:
+        # Use unreliable tools with failure injection
+        bash_tool = unreliable_bash(
+            tool_reliability=tool_reliability,
+            timeout=60,
+            attempt_num=1,
+        )
+        python_tool = unreliable_python(
+            tool_reliability=tool_reliability,
+            timeout=60,
+            attempt_num=1,
+        )
+        text_editor_tool = unreliable_text_editor(
+            tool_reliability=tool_reliability,
+            timeout=60,
+            attempt_num=1,
+        )
+    else:
+        # Use standard tools
+        bash_tool = bash(timeout=60)
+        python_tool = python(timeout=60)
+        text_editor_tool = text_editor(timeout=60)
+
+    
     return basic_agent(
         init=custom_init_message(),
         tools=[
-            bash(timeout=60),
-            python(timeout=60),
-            text_editor(timeout=60),
+            bash_tool,
+            python_tool,
+            text_editor_tool,
             think(
                 dedent("""
                 Use the think tool to think about something. It will not obtain

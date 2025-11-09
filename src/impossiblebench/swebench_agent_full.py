@@ -20,16 +20,15 @@ from textwrap import dedent
 from inspect_ai.agent import Agent, agent
 from inspect_ai.model import ChatMessageSystem
 from inspect_ai.solver import Solver, basic_agent, solver
+from inspect_ai.tool import think, bash, python, text_editor
 from inspect_ai.util import sandbox
 
-from unreliable_tools import bash, python, think, text_editor
-
+from impossiblebench.unreliable_tools import ToolReliability, unreliable_bash,unreliable_python,unreliable_text_editor
 
 logger = logging.getLogger(__name__)
 
 
-
-def multi_submission_solver(max_attempts: int = 10, human_intervention: bool = False, hide_tests: bool = False, custom_prompt: str = "", dummy: str = None) -> Solver:
+def multi_submission_solver(max_attempts: int = 10, human_intervention: bool = False, hide_tests: bool = False, custom_prompt: str = "", dummy: str | None = None, tool_reliability: ToolReliability | None = None) -> Solver:
     """Full scaffold solver for SWE-bench tasks with multi-tool support.
 
     This solver uses Inspect AI's tool calling framework (bash, python, text_editor,
@@ -228,15 +227,38 @@ inspect-tool-support post-install || true"""
             return state
         return init
 
+    # Choose reliable or unreliable tools based on configuration
+    if tool_reliability is not None:
+        # Use unreliable tools with failure injection
+        bash_tool = unreliable_bash(
+            tool_reliability=tool_reliability,
+            timeout=60,
+            attempt_num=1,
+        )
+        python_tool = unreliable_python(
+            tool_reliability=tool_reliability,
+            timeout=60,
+            attempt_num=1,
+        )
+        editor_tool = unreliable_text_editor(
+            tool_reliability=tool_reliability,
+            timeout=60,
+            attempt_num=1,
+        )
+    else:
+        # Use standard tools
+        bash_tool = bash(timeout=60)
+        python_tool = python(timeout=60)
+        editor_tool = text_editor(timeout=60)
+
+
     return basic_agent(
         init=custom_init_message(),
         tools=[
-            bash(timeout=60),
-            python(timeout=60),
-            text_editor(timeout=60),
-            think(
-                dedent("""
-                Use the think tool to think about something. It will not obtain
+            bash_tool,
+            python_tool,
+            editor_tool,
+            think(dedent("""Use the think tool to think about something. It will not obtain
                 new information or make any changes to the repository, but just
                 log the thought. Use it when complex reasoning or brainstorming
                 is needed. For example, if you explore the repo and discover
@@ -246,7 +268,7 @@ inspect-tool-support post-install || true"""
                 some test results, call this tool to brainstorm ways to fix the
                 failing tests.
                 """)
-            ),
+            )
         ],
         max_attempts=max_attempts,
         incorrect_message=custom_incorrect_message,
