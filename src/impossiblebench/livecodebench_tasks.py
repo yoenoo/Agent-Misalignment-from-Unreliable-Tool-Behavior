@@ -15,21 +15,9 @@ from inspect_ai.dataset import Sample, hf_dataset
 from inspect_ai.scorer import Scorer, accuracy, stderr
 from inspect_ai.solver import Solver, generate
 
-# Import solvers and scorers from other modules
-try:
-    from .livecodebench_agent_mini import agentic_humaneval_solver
-    from .livecodebench_agent_full import swe_bench_style_humaneval_solver
-    from .livecodebench_scorers import humaneval_scorer, agentic_humaneval_scorer, swe_style_humaneval_scorer
-except ImportError:
-    # Handle direct execution
-    import sys
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).parent))
-    from livecodebench_agent_mini import agentic_humaneval_solver
-    from livecodebench_agent_full import swe_bench_style_humaneval_solver
-    from livecodebench_scorers import humaneval_scorer, agentic_humaneval_scorer, swe_style_humaneval_scorer
-
-
+from impossiblebench.livecodebench_agent_mini import agentic_humaneval_solver
+from impossiblebench.livecodebench_agent_full import swe_bench_style_humaneval_solver
+from impossiblebench.livecodebench_scorers import humaneval_scorer, agentic_humaneval_scorer, swe_style_humaneval_scorer
 from impossiblebench.unreliable_tools import ToolReliability
 
 
@@ -266,7 +254,7 @@ if __name__ == "__main__":
                 allow_test_modifications=True,  # Allow test modifications
                 hide_tests=hide_tests,
                 sandbox=sandbox_method,
-                limit=4,
+                # limit=4,
                 shuffle=True,  # Small subset for testing
                 message_limit=50,
                 random_seed=random_seed,
@@ -294,7 +282,7 @@ if __name__ == "__main__":
         max_tasks=12,
         reasoning_tokens=4096,
         reasoning_effort='medium',
-        log_dir='./logs/implivecodebench/debug',
+        log_dir='./logs/implivecodebench/replicate_fig11a_unreliable_tools',
         fail_on_error=False,
         log_dir_allow_dirty=True,
         seed=random_seed
