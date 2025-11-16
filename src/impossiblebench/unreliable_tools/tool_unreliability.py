@@ -4,8 +4,10 @@ This module provides functionality to inject various failure modes into agent
 tool calls to test how agents respond to unreliable tools.
 """
 
-import random
 from typing import Literal, Optional
+
+from numpy.random import default_rng
+
 from inspect_ai.util import ExecResult
 
 
@@ -57,20 +59,19 @@ class ToolReliability:
         # Track attempt count for intermittent failures
         self._attempt_count = 0
 
-        if seed is not None:
-            random.seed(seed)
+        self.rng = default_rng(seed)
 
     def should_inject_timeout(self) -> bool:
         """Check if timeout should be injected."""
-        return random.random() < self.timeout_failure_rate
+        return self.rng.random() < self.timeout_failure_rate
 
     def should_inject_write_failure(self) -> bool:
         """Check if write failure should be injected."""
-        return random.random() < self.write_failure_rate
+        return self.rng.random() < self.write_failure_rate
 
     def should_inject_corruption(self) -> bool:
         """Check if corruption should be injected."""
-        return random.random() < self.corruption_rate
+        return self.rng.random() < self.corruption_rate
 
     def apply_timeout_to_exec(self, timeout: int) -> int:
         """Modify timeout value to cause random failures.
@@ -120,7 +121,7 @@ class ToolReliability:
             corrupted_stdout = original_result.stdout
             if corrupted_stdout:
                 # Add noise or truncate
-                if random.random() < 0.5:
+                if self.rng.random() < 0.5:
                     # Add noise
                     corrupted_stdout = "[CORRUPTED] " + corrupted_stdout
                 else:
@@ -146,19 +147,19 @@ class ToolReliability:
 
     def should_inject_rate_limit(self) -> bool:
         """Check if rate limiting should be injected."""
-        return random.random() < self.rate_limit_failure_rate
+        return self.rng.random() < self.rate_limit_failure_rate
 
     def should_inject_memory_failure(self) -> bool:
         """Check if memory failure should be injected."""
-        return random.random() < self.memory_failure_rate
+        return self.rng.random() < self.memory_failure_rate
 
     def should_inject_misleading_error(self) -> bool:
         """Check if misleading error should be injected."""
-        return random.random() < self.misleading_error_rate
+        return self.rng.random() < self.misleading_error_rate
 
     def should_inject_permission_denied(self) -> bool:
         """Check if permission denied error should be injected."""
-        return random.random() < self.permission_denied_rate
+        return self.rng.random() < self.permission_denied_rate
 
     def should_inject_intermittent_failure(
         self, attempt_num: Optional[int] = None
@@ -173,7 +174,7 @@ class ToolReliability:
             return attempt_num % self.intermittent_pattern == 0
 
         # Random intermittent failures
-        return random.random() < self.intermittent_failure_rate
+        return self.rng.random() < self.intermittent_failure_rate
 
     def inject_rate_limit_error(self) -> ExecResult:
         """Generate a rate limiting error result.
@@ -204,7 +205,7 @@ class ToolReliability:
             success=False,
             returncode=1,
             stdout="",
-            stderr=random.choice(errors),
+            stderr=str(self.rng.choice(errors)),
         )
 
     def inject_misleading_error(self, original_result: ExecResult) -> ExecResult:
@@ -227,7 +228,7 @@ class ToolReliability:
             success=False,
             returncode=1,
             stdout="",
-            stderr=random.choice(misleading_errors),
+            stderr=str(self.rng.choice(misleading_errors)),
         )
 
     def inject_permission_denied_error(self) -> tuple[bool, str]:
@@ -241,7 +242,7 @@ class ToolReliability:
             "Access denied: operation not permitted",
             "Error: Permission denied",
         ]
-        return False, random.choice(errors)
+        return False, str(self.rng.choice(errors))
 
     def get_config_summary(self) -> dict:
         """Get summary of current configuration."""
@@ -307,3 +308,5 @@ def create_custom_config(
         write_failure_rate=write_rate,
         corruption_rate=corruption_rate,
     )
+ 
+ 

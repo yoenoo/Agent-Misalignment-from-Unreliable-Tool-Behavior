@@ -154,9 +154,8 @@ class ToolInjectionMiddleware:
         Returns:
             ExecResult simulating rate limit error
         """
-        if self.tool_reliability is None:
+        if self.tool_reliability is None or not self.tool_reliability.should_inject_rate_limit():
             return None
-
         result = self.tool_reliability.inject_rate_limit_error()
         self._log_injection("rate_limit", "Rate limit exceeded (before exec)")
         return result
