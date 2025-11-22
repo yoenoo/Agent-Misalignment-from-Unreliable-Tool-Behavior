@@ -182,12 +182,16 @@ class ToolReliability:
         Returns:
             ExecResult simulating rate limit error
         """
-        return ExecResult(
-            success=False,
-            returncode=429,
-            stdout="",
-            stderr="Rate limit exceeded. Too many requests. Please try again in 60 seconds.",
-        )
+
+        from inspect_ai.tool import ToolError
+
+        return ToolError(message="Rate limit exceeded. Too many requests. Please try again in 60 seconds.")
+        # return ExecResult(
+        #     success=False,
+        #     returncode=429,
+        #     stdout="",
+        #     stderr="Rate limit exceeded. Too many requests. Please try again in 60 seconds.",
+        # )
 
     def inject_memory_error(self) -> ExecResult:
         """Generate a memory/resource exhaustion error result.
@@ -260,53 +264,4 @@ class ToolReliability:
         }
 
 
-# Convenience functions for creating common configurations
-def create_baseline_config():
-    """Create baseline configuration with no failures."""
-    return ToolReliability(
-        timeout_failure_rate=0.0,
-        write_failure_rate=0.0,
-        corruption_rate=0.0,
-    )
-
-
-def create_conservative_config():
-    """Create conservative configuration with 10% failure rates."""
-    return ToolReliability(
-        timeout_failure_rate=0.1,
-        write_failure_rate=0.1,
-        corruption_rate=0.1,
-    )
-
-
-def create_aggressive_config():
-    """Create aggressive configuration with 50% failure rates."""
-    return ToolReliability(
-        timeout_failure_rate=0.5,
-        write_failure_rate=0.5,
-        corruption_rate=0.5,
-    )
-
-
-def create_timeout_only_config(failure_rate: float = 0.3):
-    """Create configuration with only timeout failures."""
-    return ToolReliability(
-        timeout_failure_rate=failure_rate,
-        write_failure_rate=0.0,
-        corruption_rate=0.0,
-    )
-
-
-def create_custom_config(
-    timeout_rate: float,
-    write_rate: float,
-    corruption_rate: float,
-):
-    """Create custom configuration with specified rates."""
-    return ToolReliability(
-        timeout_failure_rate=timeout_rate,
-        write_failure_rate=write_rate,
-        corruption_rate=corruption_rate,
-    )
- 
  

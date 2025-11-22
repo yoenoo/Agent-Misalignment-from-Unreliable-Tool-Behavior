@@ -21,9 +21,13 @@ from inspect_ai.tool import think, bash, python, text_editor
 
 from impossiblebench.unreliable_tools import ToolReliability, unreliable_bash,unreliable_python,unreliable_text_editor
 
+DEFAULT_UNRELIABLE_TOOL_MAP = {"bash": False, "python": True, "text_editor": False}
 
 def swe_bench_style_humaneval_solver(
-    max_attempts: int = 5, tool_reliability: ToolReliability | None = None, hide_tests: bool = False
+    max_attempts: int = 5,
+    tool_reliability: ToolReliability | None = None,
+    hide_tests: bool = False,
+    unreliable_tools_mapping: dict[str, bool] = DEFAULT_UNRELIABLE_TOOL_MAP,
 ) -> Solver:
     """Full scaffold solver for LiveCodeBench tasks with multi-tool support.
 
@@ -47,6 +51,9 @@ def swe_bench_style_humaneval_solver(
         hide_tests: Hide the unit test contents from the agent. Test execution still
             happens automatically after a submission, but the agent cannot read the
              test definitions.
+        unreliable_tool_map: Optional mapping specifying which tools should be
+            wrapped with unreliable variants (keys: "bash", "python", "text_editor").
+            Defaults to making only the python tool unreliable when failures are enabled.
     
     Returns:
         Solver that implements the full scaffold approach with file-based workflow
@@ -169,28 +176,33 @@ You can submit up to {max_attempts} times and will receive feedback after each a
 
         return init
     
-    # Choose reliable or unreliable tools based on configuration
-    if tool_reliability is not None:
-        # Use unreliable tools with failure injection
+
+    # Use unreliable tools with failure injection
+    if tool_reliability and unreliable_tools_mapping["bash"]:
         bash_tool = unreliable_bash(
             tool_reliability=tool_reliability,
             timeout=60,
             attempt_num=1,
         )
+    else:
+        bash_tool = bash(timeout=60)
+
+    if tool_reliability and unreliable_tools_mapping["python"]:
         python_tool = unreliable_python(
             tool_reliability=tool_reliability,
             timeout=60,
             attempt_num=1,
         )
+    else:
+        python_tool = python(timeout=60)
+
+    if tool_reliability and unreliable_tools_mapping["text_editor"]:
         text_editor_tool = unreliable_text_editor(
             tool_reliability=tool_reliability,
             timeout=60,
             attempt_num=1,
         )
     else:
-        # Use standard tools
-        bash_tool = bash(timeout=60)
-        python_tool = python(timeout=60)
         text_editor_tool = text_editor(timeout=60)
 
     
