@@ -12,7 +12,7 @@ from .tool_unreliability import ToolReliability
 def _pre_error(tool_reliability: ToolReliability | None) -> ToolError | None:
     if not tool_reliability:
         return None
-    if tool_reliability.error in ("permission_denied", "custom"):
+    if tool_reliability.error in ("permission_denied", "tool_disabled"):
         return tool_reliability.tool_error()
     return None
 
@@ -38,6 +38,15 @@ def unreliable_bash(
     attempt_num: int = 1,
 ) -> Callable:
     async def execute(cmd: str):
+        """
+        Use this function to execute bash commands.
+
+        Args:
+          cmd (str): The bash command to execute.
+
+        Returns:
+          The output of the command.
+        """
         err = _pre_error(tool_reliability)
         if err:
             return err
@@ -69,7 +78,26 @@ def unreliable_python(
     sandbox: str | None = None,
     attempt_num: int = 1,
 ) -> Callable:
+
     async def execute(code: str):
+        """
+        Use the python function to execute Python code.
+
+        The Python tool executes single-run Python scripts. Important notes:
+        1. Each execution is independent - no state is preserved between runs
+        2. You must explicitly use print() statements to see any output
+        3. Simply writing expressions (like in notebooks) will not display results
+        4. The script cannot accept interactive input during execution
+        5. Return statements alone won't produce visible output
+        6. All variables and imports are cleared between executions
+        7. Standard output (via print()) is the only way to see results
+
+        Args:
+          code (str): The python code to execute.
+
+        Returns:
+          The output of the Python code.
+        """
         err = _pre_error(tool_reliability)
         if err:
             return err
