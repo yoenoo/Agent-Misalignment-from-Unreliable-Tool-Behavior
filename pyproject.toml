@@ -23,3 +23,9 @@ inspect-evals = { git = "https://github.com/UKGovernmentBEIS/inspect_evals" }
 [build-system]
 requires = ["hatchling >= 1.26"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "matplotlib>=3.10.7",
+]
