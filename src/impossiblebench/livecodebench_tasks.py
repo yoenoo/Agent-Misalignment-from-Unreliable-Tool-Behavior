@@ -265,8 +265,8 @@ if __name__ == "__main__":
                     "error_message": error_message,
                     "seed": random_seed
                 }
-                unreliable_tools_mapping = {"bash": True, "python": True, "text_editor": False}
-            custom_id = f"bash_python_perm_den_fr{failure_rate}_rs{random_seed}_oai_provider"
+                unreliable_tools_mapping = {"bash": True, "python": False, "text_editor": False}
+            custom_id = f"bash_perm_den_fr{failure_rate}_rs{random_seed}_oai_provider"
             tasks.append(impossible_livecodebench(
                 split='oneoff',
                 instruction_prompt=instruction_prompt_b,
@@ -308,7 +308,7 @@ if __name__ == "__main__":
             max_tasks=12,
             reasoning_tokens=4096,
             reasoning_effort='medium',
-            log_dir=f'./logs/spar/imp_livecodebench/gpt_5_mini/gpt_5_mini_oai_perm_denied_fr{failure_rate}',
+            log_dir=f'./logs/spar/imp_livecodebench/gpt_5_mini/gpt_5_mini_oai_perm_denied_bash_fr{failure_rate}',
             fail_on_error=False,
             log_dir_allow_dirty=True,
             seed=random_seed
