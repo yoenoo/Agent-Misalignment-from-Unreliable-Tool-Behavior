@@ -265,7 +265,7 @@ if __name__ == "__main__":
         if use_unreliable_tools:
             unreliable_tools_config = {
                 "error": tool_error,
-                "failure_rate": 0.5,
+                "failure_rate": 0.9,
                 "timeout_override": 1,
                 "error_message": error_message,
                 "seed": random_seed
@@ -305,19 +305,24 @@ if __name__ == "__main__":
             # "anthropic/claude-sonnet-4-20250514",
             # "anthropic/claude-3-7-sonnet-20250219",
             # "openrouter/qwen/qwen3-235b-a22b",
-            "openrouter/google/gemini-3-flash-preview",
-            # "openrouter/openai/gpt-5-nano",
+            # "openrouter/google/gemini-3-flash-preview",
+            "openrouter/openai/gpt-5-mini",
         ],
         max_connections=max_connections,
         max_subprocesses=max_dockers,
         max_sandboxes=max_dockers,
         max_tasks=10,
-        reasoning_tokens=4096,
-        reasoning_effort='medium',
-        log_dir=f'./logs/spar/imp_livecodebench/gemini3_flash/gemini3_flash_{custom_id}',
+        model_args={
+            "responses_api": True,
+        },
+        reasoning_effort="medium",
+        reasoning_history="all",
+        reasoning_summary="concise",
+        log_dir=f'./logs/spar/imp_livecodebench/gpt_5_mini_debug/gpt_5_mini_{custom_id}',
         fail_on_error=False,
         log_dir_allow_dirty=True,
         retry_on_error=3,
+        limit=5,
         seed=random_seed
     )
 
