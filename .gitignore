@@ -1,6 +1,10 @@
 # Custom
 logs/
 .DS_Store
+# Tsimur: I want to experiment with gemini cli
+GEMINI.md 
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

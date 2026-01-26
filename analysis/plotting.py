@@ -3,6 +3,59 @@ import numpy as np
 from collections import Counter
 from typing import Dict, List
 
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.colors as mcolors
+
+
+
+
+
+def visualize_logs_per_task_binary(logs):
+    data_matrix = []
+    row_labels = []
+
+    # Flatten the dictionary into rows and labels (e.g., baseline_1)
+    for run_name, seeds in logs.items():
+        for i, results in enumerate(seeds):
+            data_matrix.append(results)
+            row_labels.append(f"{run_name}_{i+1}")
+
+    data_array = np.array(data_matrix)
+    nrows, ncols = data_array.shape
+
+    # Set up the plot (width based on tasks, height based on rows)
+    fig, ax = plt.subplots(figsize=(ncols * 1.2, nrows * 0.8))
+
+    # Define a discrete colormap: 0 -> Red (Fail), 1 -> Green (Success)
+    cmap = mcolors.ListedColormap(['#ff9999', '#99ff99'])
+    bounds = [0, 0.5, 1]
+    norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
+    # Plot the matrix
+    im = ax.imshow(data_array, cmap=cmap, norm=norm, aspect='equal')
+
+    # Set axis labels
+    ax.set_yticks(np.arange(nrows))
+    ax.set_yticklabels(row_labels)
+    ax.set_xticks(np.arange(ncols))
+    ax.set_xticklabels([f"Task {i+1}" for i in range(ncols)])
+
+    # Add grid lines by setting minor ticks between the squares
+    ax.set_xticks(np.arange(ncols + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(nrows + 1) - 0.5, minor=True)
+    
+    # Draw the white grid lines to separate the squares
+    ax.grid(which="minor", color="white", linestyle='-', linewidth=4)
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    # Clean up the visual by removing the frame
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    plt.title("Run Results Grid", pad=15)
+    plt.tight_layout()
+    plt.savefig('run_results_grid.png')
 
 
 
