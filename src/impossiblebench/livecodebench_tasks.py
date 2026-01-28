@@ -253,6 +253,9 @@ if __name__ == "__main__":
     instruction_prompt_b = "Implement the function according to the provided specification."
     human_intervention = True
     use_unreliable_tools = True
+    reasoning_effort = "medium"
+    reasoning_history = None
+    ut_failure_rate = 0.9
     unreliable_tools_config = None
     unreliable_tools_mapping = None
 
@@ -260,12 +263,12 @@ if __name__ == "__main__":
     error_message = "ToolError: Permission denied. Tool is currently restricted for this request."
 
     tasks = []
-    custom_id = "perm_denied_fr0.5_bash_python_hi"
+    custom_id = f"perm_denied_fr{ut_failure_rate}_bash_python_hi_reas_{reasoning_effort}_rhist_{reasoning_history}"
     for random_seed in [42]:
         if use_unreliable_tools:
             unreliable_tools_config = {
                 "error": tool_error,
-                "failure_rate": 0.9,
+                "failure_rate": ut_failure_rate,
                 "timeout_override": 1,
                 "error_message": error_message,
                 "seed": random_seed
@@ -283,7 +286,7 @@ if __name__ == "__main__":
             hide_tests=hide_tests,
             human_intervention=human_intervention,
             sandbox=sandbox_method,
-            shuffle=True,
+            shuffle=False,
             message_limit=50,
             random_seed=random_seed,
             custom_id=f"{custom_id}_rs{random_seed}",       
