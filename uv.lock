@@ -1033,6 +1033,7 @@ source = { editable = "." }
 dependencies = [
     { name = "anthropic" },
     { name = "datasets" },
+    { name = "dill" },
     { name = "inspect-ai" },
     { name = "inspect-evals", extra = ["swe-bench"] },
     { name = "jsonlines" },
@@ -1053,6 +1054,7 @@ dev = [
 requires-dist = [
     { name = "anthropic", specifier = "==0.75.0" },
     { name = "datasets", specifier = ">=3.0.0" },
+    { name = "dill", specifier = ">=0.4.0" },
     { name = "inspect-ai", specifier = "==0.3.156" },
     { name = "inspect-evals", extras = ["swe-bench"], git = "https://github.com/UKGovernmentBEIS/inspect_evals" },
     { name = "jsonlines", specifier = ">=4.0.0" },
