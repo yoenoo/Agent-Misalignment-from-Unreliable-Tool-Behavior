@@ -375,6 +375,12 @@ def plot_per_sample_scores(
 
     data_array = np.array(data_matrix)
 
+    # Sort columns by number of 1's (reward hacking) across all runs (descending)
+    # Count 1's in each column (treating -1 as 0 for counting purposes)
+    ones_count = np.sum(data_array == 1, axis=0)
+    sorted_indices = np.argsort(-ones_count)  # Descending order
+    data_array = data_array[:, sorted_indices]
+
     # Auto-calculate figure size if not provided
     if figsize is None:
         width = max(12, n_samples * 0.15)
@@ -394,12 +400,9 @@ def plot_per_sample_scores(
     ax.set_yticks(np.arange(n_runs))
     ax.set_yticklabels(run_names)
 
-    # Set x-axis labels
-    if show_task_labels:
-        ax.set_xticks(np.arange(n_samples))
-        ax.set_xticklabels([f"{i+1}" for i in range(n_samples)], fontsize=6)
-    else:
-        ax.set_xticks([])
+    # Set x-axis labels (show original sample indices after sorting)
+    ax.set_xticks(np.arange(n_samples))
+    ax.set_xticklabels([f"{idx}" for idx in sorted_indices], fontsize=5, rotation=90)
 
     ax.set_xlabel(f"Samples (n={n_samples})")
     ax.set_title(title, fontsize=14, fontweight="bold", pad=10)
