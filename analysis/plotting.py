@@ -13,42 +13,6 @@ def plot_cumulative_message_histograms(
     bins: int | str | Sequence[int] = "auto",
     show: bool = True,
 ):
-    """
-    Plot cumulative probability histograms (CDFs) of total chat messages per sample
-    for multiple eval runs on a single plot.
-
-    Parameters
-    ----------
-    message_counts_by_name
-        Mapping from a name/label to a sequence of integers.
-
-        Each key is a label that will appear in the legend.
-        Each value is a sequence of ints giving the total number of chat messages
-        used for each eval sample in that run.
-
-        Example:
-            message_counts_by_name = {
-                "gpt-5-mini": [3, 4, 4, 10, 2],
-                "gpt-4.1":    [5, 6, 2, 8, 3, 3],
-            }
-
-    bins
-        Binning strategy passed to numpy.histogram for a *shared* binning.
-        - int: number of bins
-        - "auto": let numpy choose from all concatenated data
-        - sequence: explicit bin edges
-
-    show
-        If True, calls plt.show() at the end.
-
-    Returns
-    -------
-    bin_edges : np.ndarray
-        The edges of the bins (shared across all series).
-    cdfs : dict[str, np.ndarray]
-        Mapping from name to CDF array for that series
-        (same length as bin_edges[1:]).
-    """
     # Concatenate all data to get shared bin edges
     all_counts = np.concatenate(
         [np.asarray(v, dtype=int) for v in message_counts_by_name.values()]
@@ -158,12 +122,7 @@ def plot_bars_with_ci(results, title="", xlabel="", ylabel="", figsize=(10, 6),
     
     y = np.arange(len(conditions))
     bars = ax.barh(y, means, color=colors, alpha=alpha, xerr=errors, capsize=capsize)
-    
-    # # Add value labels on bars - position them to the right of error bars
-    # for i, (bar, mean, error) in enumerate(zip(bars, means, errors)):
-    #     label_x = mean + error + label_offset  # Place after error bar
-    #     ax.text(label_x, i, f'{mean:.0f}%', va='center', fontsize=10, fontweight='bold')
-    
+
     ax.set_yticks(y)
     ax.set_yticklabels(conditions)
     ax.set_xlim(xlim[0], xlim[1])
@@ -178,99 +137,6 @@ def plot_bars_with_ci(results, title="", xlabel="", ylabel="", figsize=(10, 6),
     return fig, ax
 
 
-# def plot_side_by_side_comparison(results_dict, titles, xlabel="", figsize=(16, 6),
-#                                   colors=None, alpha=0.8, capsize=5, xlim=(0, 100),
-#                                   main_title=None):
-#     """
-#     Create side-by-side bar plots for comparing multiple models.
-    
-#     Parameters:
-#     -----------
-#     results_dict : dict
-#         Dictionary with model names as keys and their results dictionaries as values
-#         Example: {'GPT-5-mini': {condition: [values]}, 'QWEN-3': {condition: [values]}}
-#     titles : list of str
-#         Subplot titles (e.g., ['(A) GPT-5-mini', '(B) QWEN-3'])
-#     xlabel : str
-#         Label for x-axis (shared across subplots)
-#     figsize : tuple
-#         Figure size (width, height)
-#     colors : list or None
-#         List of colors for bars. If None, uses default color scheme
-#     alpha : float
-#         Transparency of bars
-#     capsize : int
-#         Size of error bar caps
-#     xlim : tuple
-#         X-axis limits (min, max)
-#     main_title : str or None
-#         Overall figure title
-    
-#     Returns:
-#     --------
-#     fig, axes : matplotlib figure and axes objects
-#     """
-#     n_models = len(results_dict)
-#     fig, axes = plt.subplots(1, n_models, figsize=figsize, sharey=False)
-    
-#     # Handle single model case (axes is not a list)
-#     if n_models == 1:
-#         axes = [axes]
-    
-#     # Get all unique conditions across all models for consistent coloring
-#     all_conditions = []
-#     for results in results_dict.values():
-#         all_conditions.extend(results.keys())
-#     unique_conditions = list(dict.fromkeys(all_conditions))  # Preserve order
-    
-#     # Create color mapping if colors not provided
-#     if colors is None:
-#         colors_map = {cond: plt.cm.tab10(i % 10) for i, cond in enumerate(unique_conditions)}
-#     else:
-#         colors_map = {cond: colors[i % len(colors)] for i, cond in enumerate(unique_conditions)}
-    
-#     for idx, (model_name, results) in enumerate(results_dict.items()):
-#         ax = axes[idx]
-        
-#         conditions = list(results.keys())
-#         means = []
-#         errors = []
-#         bar_colors = []
-        
-#         for cond, values in results.items():
-#             if len(values) == 1:
-#                 means.append(values[0])
-#                 errors.append(0)
-#             else:
-#                 mean = np.mean(values)
-#                 ci = 1.96 * np.std(values, ddof=1) / np.sqrt(len(values))  # 95% CI
-#                 means.append(mean)
-#                 errors.append(ci)
-#             bar_colors.append(colors_map[cond])
-        
-#         y = np.arange(len(conditions))
-#         ax.barh(y, means, color=bar_colors, alpha=alpha, xerr=errors, capsize=capsize)
-        
-#         ax.set_yticks(y)
-#         ax.set_yticklabels(conditions)
-#         ax.set_xlim(xlim[0], xlim[1])
-#         ax.set_xlabel(xlabel)
-#         ax.set_title(titles[idx], fontweight='bold', fontsize=12)
-#         ax.grid(axis="x", alpha=0.3)
-#         ax.invert_yaxis()  # highest on top
-        
-#         # Only show y-labels on leftmost plot
-#         if idx > 0:
-#             ax.set_ylabel('')
-    
-#     # Add main title if provided
-#     if main_title:
-#         fig.suptitle(main_title, fontsize=14, fontweight='bold', y=1.02)
-
-#     plt.tight_layout()
-#     return fig, axes
-
-
 def plot_correlation_matrix(
     corr_matrix: pd.DataFrame,
     figsize=(10, 8),
@@ -282,32 +148,6 @@ def plot_correlation_matrix(
     vmax=1,
     mask_upper=True,
 ):
-    """
-    Visualize a correlation matrix as a heatmap.
-
-    Parameters
-    ----------
-    corr_matrix : pd.DataFrame
-        Correlation matrix from calculate_pairwise_correlation.
-    figsize : tuple
-        Figure size (width, height).
-    title : str
-        Plot title.
-    cmap : str
-        Colormap for the heatmap.
-    annot : bool
-        Whether to annotate cells with correlation values.
-    fmt : str
-        Format string for annotations.
-    vmin, vmax : float
-        Color scale range.
-    mask_upper : bool
-        Whether to mask the upper triangle.
-
-    Returns
-    -------
-    fig, ax : matplotlib figure and axes objects
-    """
     fig, ax = plt.subplots(figsize=figsize)
 
     # Create mask for upper triangle (excluding diagonal)
