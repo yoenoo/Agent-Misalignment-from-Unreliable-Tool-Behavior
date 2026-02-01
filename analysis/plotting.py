@@ -3,9 +3,10 @@ from collections.abc import Mapping, Sequence
 from typing import Dict, List
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-
+import seaborn as sns
 
 def plot_cumulative_message_histograms(
     message_counts_by_name: Mapping[str, Sequence[int]],
@@ -74,9 +75,6 @@ def plot_cumulative_message_histograms(
     ax.set_ylim(0, 1)
     ax.grid(True, alpha=0.3)
     ax.legend(title="Eval run")
-
-    if show:
-        plt.show()
 
     return fig, ax
 
@@ -268,8 +266,155 @@ def plot_bars_with_ci(results, title="", xlabel="", ylabel="", figsize=(10, 6),
 #     # Add main title if provided
 #     if main_title:
 #         fig.suptitle(main_title, fontsize=14, fontweight='bold', y=1.02)
-    
+
 #     plt.tight_layout()
 #     return fig, axes
+
+
+def plot_correlation_matrix(
+    corr_matrix: pd.DataFrame,
+    figsize=(10, 8),
+    title="Pairwise Correlation of Reward Hacking Scores",
+    cmap="coolwarm",
+    annot=True,
+    fmt=".2f",
+    vmin=-1,
+    vmax=1,
+    mask_upper=True,
+):
+    """
+    Visualize a correlation matrix as a heatmap.
+
+    Parameters
+    ----------
+    corr_matrix : pd.DataFrame
+        Correlation matrix from calculate_pairwise_correlation.
+    figsize : tuple
+        Figure size (width, height).
+    title : str
+        Plot title.
+    cmap : str
+        Colormap for the heatmap.
+    annot : bool
+        Whether to annotate cells with correlation values.
+    fmt : str
+        Format string for annotations.
+    vmin, vmax : float
+        Color scale range.
+    mask_upper : bool
+        Whether to mask the upper triangle.
+
+    Returns
+    -------
+    fig, ax : matplotlib figure and axes objects
+    """
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Create mask for upper triangle (excluding diagonal)
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1) if mask_upper else None
+
+    sns.heatmap(
+        corr_matrix,
+        mask=mask,
+        annot=annot,
+        fmt=fmt,
+        cmap=cmap,
+        vmin=vmin,
+        vmax=vmax,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={"shrink": 0.8},
+        ax=ax,
+    )
+
+    ax.set_title(title, fontsize=14, fontweight="bold", pad=15)
+    plt.xticks(rotation=45, ha="right")
+    plt.yticks(rotation=0)
+    plt.tight_layout()
+
+    return fig, ax
+
+def plot_per_sample_scores(
+    scores_dict: dict[str, list[int]],
+    figsize=None,
+    title="Per-Sample Reward Hacking Scores",
+    cmap_colors=("#ff9999", "#99ff99"),
+    show_task_labels=False,
+):
+    """
+    Visualize per-sample reward hacking scores as a binary heatmap grid.
+
+    Parameters
+    ----------
+    scores_dict : dict[str, list[int]]
+        Dictionary from get_per_sample_reward_hacking_scores.
+        Keys are run names, values are lists of binary scores (0/1).
+    figsize : tuple or None
+        Figure size. If None, auto-calculated based on data.
+    title : str
+        Plot title.
+    cmap_colors : tuple
+        Colors for (0=fail, 1=success). Default is (red, green).
+    show_task_labels : bool
+        Whether to show task numbers on x-axis.
+
+    Returns
+    -------
+    fig, ax : matplotlib figure and axes objects
+    """
+    run_names = list(scores_dict.keys())
+    n_runs = len(run_names)
+    n_samples = max(len(v) for v in scores_dict.values())
+
+    # Pad shorter lists with -1 (will be shown as white/neutral)
+    data_matrix = []
+    for run_name in run_names:
+        scores = scores_dict[run_name]
+        padded = scores + [-1] * (n_samples - len(scores))
+        data_matrix.append(padded)
+
+    data_array = np.array(data_matrix)
+
+    # Auto-calculate figure size if not provided
+    if figsize is None:
+        width = max(12, n_samples * 0.15)
+        height = max(4, n_runs * 0.5)
+        figsize = (width, height)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Create colormap: -1 -> white, 0 -> red, 1 -> green
+    cmap = mcolors.ListedColormap(["white", cmap_colors[0], cmap_colors[1]])
+    bounds = [-1.5, -0.5, 0.5, 1.5]
+    norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
+    ax.imshow(data_array, cmap=cmap, norm=norm, aspect="auto")
+
+    # Set y-axis labels (run names)
+    ax.set_yticks(np.arange(n_runs))
+    ax.set_yticklabels(run_names)
+
+    # Set x-axis labels
+    if show_task_labels:
+        ax.set_xticks(np.arange(n_samples))
+        ax.set_xticklabels([f"{i+1}" for i in range(n_samples)], fontsize=6)
+    else:
+        ax.set_xticks([])
+
+    ax.set_xlabel(f"Samples (n={n_samples})")
+    ax.set_title(title, fontsize=14, fontweight="bold", pad=10)
+
+    # Add grid lines
+    ax.set_xticks(np.arange(n_samples + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(n_runs + 1) - 0.5, minor=True)
+    ax.grid(which="minor", color="white", linestyle="-", linewidth=0.5)
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    # Remove frame
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    plt.tight_layout()
+    return fig, ax
 
 
